@@ -57,25 +57,31 @@ const SPECIALIZATION_ELECTIVES = {
 
 // Helper to construct the prompt
 const constructPrompt = (profile) => {
-    const { strong, weak, career, gpa, specialization, credits, gradePoints } = profile;
+    const { strong, weak, career, gpa, specialization, credits, gradePoints, language } = profile;
 
     // Get electives for the specialization; fallback to IT if not found
-    const electives = SPECIALIZATION_ELECTIVES[specialization] || SPECIALIZATION_ELECTIVES["IT"];
+    const electives = SPECIALIZATION_ELECTIVES[specialization];
 
-    let prompt = `Act as a senior academic advisor for SLIIT IT undergraduate students.
+    let prompt = `Act as a senior academic advisor for SLIIT IT undergraduate students specifically for their year 4 semester 1.
 
-Your task is to recommend EXACTLY 3 electives based strictly on the student's specialization and academic profile.
+Your task is to recommend EXACTLY 1 elective based strictly on the student's specialization and academic profile.
 
 IMPORTANT RULES:
 1. Only recommend electives from the provided elective list.
 2. Do NOT invent new modules.
-3. Recommend exactly 3 electives.
-4. Provide clear reasoning for each recommendation.
+3. Recommend exactly 1 elective.
+4. Provide a COMPREHENSIVE, MULTI-PARAGRAPH (Minimum 3 paragraphs) justification.
+   - Paragraph 1: Analyze how the module aligns with their specific strengths.
+   - Paragraph 2: Explain how this module bridges the gap in their weaknesses or targets their specific career goal.
+   - Paragraph 3: Discuss the academic rigor or relevance of the module to their GPA and specialization.
+   - Be incredibly detailed, professional, and persuasive. Aim for at least 150-200 words of reasoning.
 5. If Cumulative GPA is below 2.5, avoid mathematically intensive modules.
 6. If Cumulative GPA is above 3.0, you may recommend advanced/analytical modules.
 7. Consider the student’s strengths and weaknesses carefully.
 8. Keep the response structured and professional.
 9. Follow the output format exactly.
+10. YOU MUST PROVIDE THE ENTIRE REASONING IN ${language.toUpperCase()}.
+11. However, keep Module Codes and Module Names (e.g., IT4060 - Machine Learning) in English for technical accuracy.
 
 --------------------------------------------------
 
@@ -101,16 +107,10 @@ ${electives.join('\n')}
 Return the output STRICTLY in this format (Example: "1. IT4030 - Internet of Things"):
 
 1. [Module Code] - [Elective Name]
-Reason: [Provide a concise, professional justification]
-
-2. [Module Code] - [Elective Name]
-Reason: [Provide a concise, professional justification]
-
-3. [Module Code] - [Elective Name]
-Reason: [Provide a concise, professional justification]
+Reasoning: [Provide a comprehensive, three-paragraph justification here. Do not use bullet points; use full paragraphs.]
 
 Do not include any introduction or conclusion.
-Only return the 3 recommendations.
+Only return the 1 recommendation with its lengthy, detailed reasoning.
 `;
 
     return prompt;
@@ -124,13 +124,13 @@ app.listen(PORT, () => {
 // POST /api/recommend
 app.post('/api/recommend', async (req, res) => {
     try {
-        const { strong, weak, career, gpa, specialization, credits, gradePoints } = req.body;
+        const { strong, weak, career, gpa, specialization, credits, gradePoints, language } = req.body;
 
         if (!strong || !weak || !career || gpa === undefined) {
             return res.status(400).json({ error: "Missing required fields" });
         }
 
-        const prompt = constructPrompt({ strong, weak, career, gpa, specialization, credits, gradePoints });
+        const prompt = constructPrompt({ strong, weak, career, gpa, specialization, credits, gradePoints, language: language || 'English' });
 
         const response = await fetch(GEMINI_URL, {
             method: 'POST',
