@@ -8,6 +8,7 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 const allowedOrigins = [
     'https://ai-advisor-chatbot.vercel.app',
+    'https://ai-advisor-chat-bot.vercel.app',
     'http://localhost:8080',
     'http://localhost:5173',
     'http://sliit-ai-backend.railway.internal'
