@@ -135,9 +135,13 @@ Only return the 1 recommendation with its lengthy, detailed reasoning.
 };
 
 // Start Server
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}
+
+module.exports = { app, constructPrompt, SPECIALIZATION_ELECTIVES };
 
 // POST /api/recommend
 app.post('/api/recommend', async (req, res) => {
